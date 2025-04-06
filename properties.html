@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Property Search Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: #f5f7fa;
+      font-family: 'Poppins', sans-serif;
+    }
+    #filterContainer {
+      transition: transform 0.5s ease, opacity 0.5s ease;
+      background: #f5f7fa;
+      border-radius: 1px;
+    }
+    .hidden-slide {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    .animate-slide-up {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    #suggestionsDropdown {
+      z-index: 1100;
+    }
+    .property-grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+    .property-card {
+      min-height: 300px;
+    }
+    .filter-btn.active {
+      background: red !important;
+      color: white !important;
+    }
+    .filter-btn.active i {
+      color: white !important;
+    }
+    /* Price dropdown opens horizontally */
+    #priceDropdown {
+      min-width: 160px;
+      position: absolute;
+      top: 0;
+      left: 100%;
+      margin-left: 0.5rem;
+    }
+    .price-dropdown-flex {
+      display: flex;
+      flex-direction: row;
+      gap: 0.5rem;
+      padding: 0.5rem;
+    }
+    /* Price dropdown items styled like filter buttons */
+    .price-dropdown-item {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.625rem 1.5rem;
+      background-color: #e5e7eb;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      transition: background-color 0.2s ease;
+      white-space: nowrap;
+    }
+    .price-dropdown-item:hover {
+      background-color: #d1d5db;
+    }
+    .status-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      z-index: 10;
+    }
+    .image-container {
+      position: relative;
+    }
+    @media (max-width: 1024px) {
+      .property-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    @media (max-width: 768px) {
+      .property-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (max-width: 480px) {
+      .property-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body class="p-6">
+  <div class="w-full max-w-7xl mx-auto space-y-4">
+    <!-- Search Bar Section -->
+    <div class="relative">
+      <div class="flex items-center space-x-2 p-2 bg-white rounded-full shadow-md">
+        <input id="searchBox" type="text" class="flex-grow p-2 rounded-full border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Search..." />
+        <button id="houseButton" class="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors">House</button>
+        <a href="land_properties.html">
+          <button id="landButton" class="px-4 py-2 bg-gray-200 rounded-full hover:bg-gray-300 transition-colors">Land</button>
+        </a>
+      </div>
+      <div id="suggestionsDropdown" class="absolute top-full mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg hidden"></div>
+    </div>
+
+    <!-- Filter Buttons -->
+    <div id="filterContainer" class="hidden-slide hidden flex justify-center space-x-3 p-2 rounded-full">
+      <button class="filter-btn flex items-center px-6 py-2.5 bg-gray-200 rounded-full text-sm active" data-filter="all">
+        <i class="fas fa-list text-blue-500 mr-2"></i>All
+      </button>
+      <button class="filter-btn flex items-center px-6 py-2.5 bg-gray-200 rounded-full text-sm" data-filter="buy">
+        <i class="fas fa-shopping-cart text-blue-500 mr-2"></i>Buy
+      </button>
+      <button class="filter-btn flex items-center px-6 py-2.5 bg-gray-200 rounded-full text-sm" data-filter="rent">
+        <i class="fas fa-home text-blue-500 mr-2"></i>Rent
+      </button>
+      <div class="relative">
+        <button id="priceButton" class="flex items-center px-6 py-2.5 bg-gray-200 rounded-full text-sm hover:bg-gray-300 transition-colors">
+          <i class="fas fa-dollar-sign text-blue-500 mr-2"></i>Price <i class="fas fa-caret-down ml-1"></i>
+        </button>
+        <!-- Price dropdown now opens horizontally -->
+        <div id="priceDropdown" class="hidden bg-#c3cfe2 border border-gray-300 rounded-md shadow-lg">
+          <div class="price-dropdown-flex">
+            <a href="#" class="price-dropdown-item" data-price="price_low_high">Low to High</a>
+            <a href="#" class="price-dropdown-item" data-price="price_high_low">High to Low</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Property Grid -->
+    <div class="property-grid grid gap-4">
+      <!-- Properties will be rendered here -->
+    </div>
+  </div>
+
+  <script>
+    // DOM Elements
+    const searchBox = document.getElementById('searchBox');
+    const houseButton = document.getElementById('houseButton');
+    const landButton = document.getElementById('landButton');
+    const priceButton = document.getElementById('priceButton');
+    const priceDropdown = document.getElementById('priceDropdown');
+    const suggestionsDropdown = document.getElementById('suggestionsDropdown');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const propertyGrid = document.querySelector('.property-grid');
+    const filterContainer = document.getElementById('filterContainer');
+
+    // State Variables
+    let currentFilter = 'all';
+    let currentSearch = '';
+    let currentPriceFilter = '';
+
+    // Toggle Price Dropdown
+    priceButton.addEventListener('click', function(e) {
+      e.stopPropagation();
+      priceDropdown.classList.toggle('hidden');
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(event) {
+      // Close price dropdown if clicking outside of price button or dropdown
+      if (!event.target.closest('#priceButton, #priceDropdown')) {
+        priceDropdown.classList.add('hidden');
+      }
+      // Close suggestions dropdown if clicking outside of search box or suggestions dropdown
+      if (!event.target.closest('#searchBox, #suggestionsDropdown')) {
+        suggestionsDropdown.style.display = 'none';
+      }
+    });
+
+    // Button Active State for filters
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        fetchProperties();
+      });
+    });
+
+    // Fetch properties from backend endpoint
+    async function fetchProperties() {
+      let url = `search.php?q=${encodeURIComponent(currentSearch)}`;
+      if (currentFilter && currentFilter !== 'all') url += `&filter=${currentFilter}`;
+      if (currentPriceFilter) url += `&price=${currentPriceFilter}`;
+
+      try {
+        const response = await fetch(url);
+        const properties = await response.json();
+        renderProperties(properties);
+        if (filterContainer.classList.contains("hidden")) {
+          filterContainer.classList.remove("hidden");
+          void filterContainer.offsetWidth;
+          filterContainer.classList.add("animate-slide-up");
+          filterContainer.classList.remove("hidden-slide");
+        }
+      } catch (err) {
+        console.error('Error fetching properties:', err);
+        propertyGrid.innerHTML = '<p>Error loading properties</p>';
+      }
+    }
+
+    // Render properties into the grid
+    function renderProperties(properties) {
+      if (!properties.length) {
+        propertyGrid.innerHTML = '<p>No properties found.</p>';
+        return;
+      }
+      propertyGrid.innerHTML = properties.map(property => `
+        <div class="property-card bg-white rounded-lg shadow-md overflow-hidden flex flex-col">
+          <div class="image-container">
+            <img src="${property.image1}" class="w-full h-40 object-cover" alt="${property.location}">
+            <div class="status-badge ${property.rent_sale === 'rent' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+              ${property.rent_sale === 'rent' ? `Rent (${property.current_stage})` : 'For Sale'}
+            </div>
+          </div>
+          <div class="p-4 flex flex-col gap-2 flex-grow">
+            <h3 class="text-base font-semibold flex items-center">
+              <i class="fas fa-map-marker-alt text-blue-500 mr-2"></i>
+              ${property.location}
+            </h3>
+            <div class="text-xl text-blue-600">
+              $${property.amount}${property.rent_sale === 'rent' ? '/mo' : ''}
+            </div>
+            <div class="flex flex-wrap gap-3 text-sm text-gray-600">
+              ${property.bedrooms ? `<div class="flex items-center"><i class="fas fa-bed text-blue-500 mr-1"></i>${property.bedrooms}</div>` : ''}
+              ${property.bathrooms ? `<div class="flex items-center"><i class="fas fa-bath text-blue-500 mr-1"></i>${property.bathrooms}</div>` : ''}
+              ${property.parking ? `<div class="flex items-center"><i class="fas fa-car text-blue-500 mr-1"></i>${property.parking}</div>` : ''}
+            </div>
+            <p class="text-gray-700 text-sm mt-2">${property.exact_address}</p>
+            <a href="propertyview.php?id=${property.id}" class="mt-auto bg-gray-800 hover:bg-gray-900 text-white py-2 px-4 rounded-full transition-colors text-sm text-center">
+              View Details →
+            </a>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Fetch and display location suggestions
+    async function fetchSuggestions(query) {
+      if (!query) {
+        suggestionsDropdown.style.display = 'none';
+        return;
+      }
+      try {
+        const response = await fetch(`search.php?q=${encodeURIComponent(query)}&dropdown=true`);
+        const suggestions = await response.json();
+        suggestionsDropdown.innerHTML = suggestions.map(item => `<div class="p-2 hover:bg-gray-200 cursor-pointer">${item}</div>`).join('');
+        suggestionsDropdown.style.display = suggestions.length ? 'block' : 'none';
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+      }
+    }
+
+    // Event Listeners for search suggestions
+    searchBox.addEventListener('input', (e) => {
+      currentSearch = e.target.value;
+      fetchSuggestions(currentSearch);
+    });
+
+    searchBox.addEventListener('keydown', (e) => {
+      if (e.key === "Enter") {
+        suggestionsDropdown.style.display = 'none';
+        fetchProperties();
+      }
+    });
+
+    suggestionsDropdown.addEventListener('click', (e) => {
+      if (e.target.tagName === 'DIV') {
+        searchBox.value = e.target.textContent;
+        currentSearch = e.target.textContent;
+        suggestionsDropdown.style.display = 'none';
+        fetchProperties();
+      }
+    });
+
+    // Price dropdown selection handling
+    priceDropdown.querySelectorAll('a').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        currentPriceFilter = item.dataset.price;
+        priceDropdown.classList.add('hidden');
+        fetchProperties();
+      });
+    });
+
+    // Initial load
+    fetchProperties();
+  </script>
+</body>
+</html>

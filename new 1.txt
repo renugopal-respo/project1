@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real Estaet</title>
+ <!-- <link rel="stylesheet" href="{{ url_for('static',filename='css/home.css')}}">-->
+  <style>
+    body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: #f0f8ff; /* Soft light blue background */
+    color: #333;
+  }
+  
+  /* Header Styles */
+  header {
+    background: linear-gradient(135deg, #ff8c00, #ff6347); /* Vibrant orange to tomato red */
+    padding: 1.5rem 3rem;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    transition: background-color 0.5s ease-in-out;
+  }
+  
+  header:hover {
+    background: linear-gradient(135deg, #ff6347, #ff8c00); /* Reverse colors on hover */
+  }
+  
+  .navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .navbar .logo {
+    font-size: 2rem; /* Reduced font size */
+    font-weight: bold;
+    color: white;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    transition: color 0.4s ease-in-out;
+    animation: fadeInLeft 1s ease-out;
+  }
+  
+  .navbar .logo:hover {
+    color: #ffd700; /* Golden yellow on hover */
+  }
+  
+  nav ul {
+    display: flex;
+    list-style: none;
+    gap: 1.5rem; /* Reduced gap between nav items */
+  }
+  
+  nav a {
+    text-decoration: none;
+    color: white;
+    font-size: 1rem; /* Reduced font size */
+    font-weight: 600;
+    letter-spacing: 1px;
+    transition: color 0.4s ease-in-out, transform 0.3s ease;
+    animation: fadeIn 1.5s ease-out;
+  }
+  
+  nav a:hover {
+    color: #ffd700; /* Hover to golden yellow */
+    transform: translateY(-3px); /* Slight translate on hover */
+  }
+  
+  /* Create Listing Button */
+  .create-listing {
+    padding: 0.8rem 1.6rem; /* Reduced padding */
+    background-color: #ffd700; /* Golden yellow */
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    font-size: 1rem; /* Reduced font size */
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    animation: bounceIn 1s ease-out;
+  }
+  
+  .create-listing:hover {
+    transform: scale(1.05); /* Slight scale */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    background-color: #f39c12; /* Darker shade on hover */
+  }
+  
+  /* Hero Section */
+  .hero {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh; /* Reduced height */
+    background: linear-gradient(135deg, #ff6347, #ff8c00); /* Warm gradient */
+    color: white;
+    text-align: center;
+    animation: fadeIn 2s ease-in-out;
+  }
+  
+  .hero h1 {
+    font-size: 2.5rem; /* Reduced font size */
+    margin-bottom: 1rem;
+    animation: slideInFromLeft 1s ease-in-out;
+    font-weight: bold;
+    letter-spacing: 2px;
+  }
+  
+  .hero p {
+    font-size: 1.2rem; /* Reduced font size */
+    margin-bottom: 1.5rem; /* Reduced margin */
+    opacity: 0.8;
+    font-style: italic;
+    letter-spacing: 1px;
+    animation: fadeIn 2s ease-in-out;
+  }
+  
+  /* Animations */
+  @keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  
+  @keyframes slideInFromLeft {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(0); }
+  }
+  
+  @keyframes fadeInLeft {
+    0% { opacity: 0; transform: translateX(-30px); }
+    100% { opacity: 1; transform: translateX(0); }
+  }
+  
+  @keyframes bounceIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    60% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); }
+  }
+  
+  /* Search Bar */
+  .search-bar {
+    width: 100%;
+    max-width: 800px; /* Reduced max-width */
+    margin: 2rem auto;
+    padding: 1.2rem; /* Reduced padding */
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+    transition: transform 0.4s ease;
+    animation: fadeInLeft 1s ease-out;
+  }
+  
+  .search-bar:hover {
+    transform: scale(1.02);
+  }
+  
+  .search-bar input,
+  .search-bar select {
+    padding: 1rem;
+    border-radius: 5px;
+    border: 2px solid #ff6347; /* Tomato red border */
+    background-color: #fff;
+    transition: all 0.3s ease;
+  }
+  
+  .search-bar input:focus,
+  .search-bar select:focus {
+    border-color: #ff8c00; /* Focus state orange border */
+  }
+  
+  /* Filter Buttons */
+  .filter-buttons {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem; /* Reduced bottom margin */
+  }
+  
+  .filter-btn {
+    margin: 0 1rem;
+    padding: 0.8rem 1.6rem; /* Reduced padding */
+    background-color: #ff6347; /* Tomato Red */
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.4s ease-in-out;
+    color: white;
+    font-size: 1rem; /* Reduced font size */
+    font-weight: 600;
+    letter-spacing: 1px;
+    animation: fadeIn 1.5s ease-out;
+  }
+  
+  .filter-btn:hover {
+    background-color: #ff8c00; /* Bright Orange */
+    transform: scale(1.05); /* Slight scale on hover */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Input Group */
+  .input-container {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+  }
+  
+  .input-container select,
+  .search-btn {
+    padding: 0.8rem 1.6rem; /* Reduced padding */
+    border-radius: 12px;
+    border: none;
+    transition: all 0.4s ease-in-out;
+    font-size: 1rem; /* Reduced font size */
+  }
+  
+  .search-btn {
+    background-color: #ff6347; /* Tomato red */
+    color: white;
+    cursor: pointer;
+  }
+  
+  .search-btn:hover {
+    background-color: #ff8c00; /* Orange on hover */
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Footer Styles */
+  footer {
+    background-color: #34495e; /* Dark slate gray */
+    color: #fff;
+    padding: 80px 0; /* Reduced padding */
+    font-family: 'Roboto', sans-serif;
+  }
+  
+  .footer-container {
+    display: flex;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .footer-section {
+    flex: 1;
+    padding: 0 20px;
+  }
+  
+  .footer-section h3 {
+    font-size: 20px; /* Reduced font size */
+    margin-bottom: 15px;
+    font-weight: bold;
+    color: #ff6347; /* Tomato Red */
+    animation: fadeIn 2s ease-out;
+  }
+  
+  .footer-section p, .footer-section a {
+    font-size: 14px; /* Reduced font size */
+    color: #bdc3c7;
+    line-height: 1.6;
+    transition: color 0.3s ease;
+  }
+  
+  .footer-section a:hover {
+    color: #ff8c00; /* Orange */
+    text-decoration: none;
+  }
+  
+  .footer-section ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .footer-section ul li {
+    margin-bottom: 10px;
+  }
+  
+  .footer-section ul li a {
+    color: #bdc3c7;
+    transition: color 0.3s ease;
+  }
+  
+  .footer-section ul li a:hover {
+    color: #ff8c00;
+  }
+  
+  .social-icons {
+    display: flex;
+    gap: 15px;
+  }
+  
+  .social-icons a {
+    width: 35px; /* Reduced size */
+    height: 35px; /* Reduced size */
+    background-color: #2c3e50;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    transition: background-color 0.4s ease-in-out;
+  }
+  
+  .social-icons a:hover {
+    background-color: #ff6347; /* Tomato Red */
+  }
+  
+  .social-icons img {
+    width: 18px; /* Reduced icon size */
+    height: 18px; /* Reduced icon size */
+  }
+  
+  .footer-bottom {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 14px; /* Reduced font size */
+    color: #bdc3c7;
+  }
+  
+  .footer-bottom p {
+    margin: 0;
+  }
+  
+  .footer-bottom a {
+    color: #ff6347; /* Tomato Red */
+    text-decoration: none;
+  }
+  
+  .footer-bottom a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Property List Section */
+  #property-list {
+    background: linear-gradient(135deg, #ff6347, #ff8c00); /* Tomato red to orange gradient */
+    padding: 80px 20px; /* Reduced padding */
+    text-align: center;
+    animation: fadeIn 1s ease-in-out;
+  }
+  
+  #property-list h2 {
+    font-size: 30px; /* Reduced font size */
+    margin-bottom: 40px;
+    color: #fff;
+    animation: fadeInLeft 1.5s ease-out;
+  }
+  
+  .property-cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 20px; /* Reduced gap */
+  }
+  
+  .property-card {
+    background-color: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    width: 30%;
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+  }
+  
+  .property-card:hover {
+    transform: translateY(-20px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+  }
+  
+  .property-image {
+    width: 100%;
+    height: 180px; /* Reduced height */
+    object-fit: cover;
+  }
+  
+  .property-info {
+    padding: 16px; /* Reduced padding */
+    text-align: left;
+  }
+  
+  .property-title {
+    font-size: 20px; /* Reduced font size */
+    font-weight: bold;
+    margin: 10px 0;
+    color: #2c3e50;
+    animation: fadeInLeft 1s ease-out;
+  }
+  
+  .property-description {
+    font-size: 14px; /* Reduced font size */
+    color: #7f8c8d;
+    margin-bottom: 15px;
+  }
+  
+  .property-price {
+    font-size: 16px; /* Reduced font size */
+    color: #e74c3c; /* Red color for price */
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
+  
+  .property-link {
+    font-size: 16px; /* Reduced font size */
+    color: #3498db; /* Blue link */
+    text-decoration: none;
+  }
+  
+  .property-link:hover {
+    text-decoration: underline;
+    color: #2980b9; /* Darker blue on hover */
+  }
+  
+  </style>
+</head>
+<body>
+  <!-- Header Section -->
+  <header>
+    <div class="navbar">
+      <div class="logo"><center>Real Estate</center></div>
+      <nav>
+       
+      </nav>
+     
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Hero Section -->
+    <section class="hero">
+     
+      <div class="hero-content">
+        <h1>Find potential buyers and sellers with ease</h1>
+        <p>Explore the best properties for sale and rent near you.</p>
+       
+        <!-- Search Bar -->
+        <div class="search-bar">
+          <!-- Filter Buttons -->
+          <div class="filter-buttons">
+            <button class="filter-btn">ALL</button>
+            <button class="filter-btn">FOR RENT</button>
+            <button class="filter-btn">FOR SALE</button>
+          </div>
+
+          <!-- Input Group -->
+          <div class="input-container">
+            <select id="location"> 
+              <option value="">Where</option>
+              <option value="virudhunagar">Virudhunagar</option>
+              <option value="theni">Theni</option>
+			  
+            </select>
+            <select id="price">
+              <option value="">Price</option>
+              <option value="10000">10,000</option>
+              <option value="20000">20,000</option>
+            </select>
+            <button class="search-btn">Search</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section id="property-list" class="property-list">
+  <h2>Our Properties</h2>
+  <div class="property-cards">
+    <!-- Property 1 -->
+    <div class="property-card">
+      <img src="uploads\/peakpx (1).jpg" alt="Property 1" class="property-image">
+      <div class="property-info">
+        <h3 class="property-title">Modern Family Home</h3>
+        <p class="property-description">A beautiful 4-bedroom home with a spacious backyard and modern amenities. Perfect for families looking for comfort and convenience.</p>
+        <p class="property-price">$450,000</p>
+        <a href="/property-detail/1" class="property-link">View Details</a>
+      </div>
+    </div>
+
+    <!-- Property 2 -->
+    <div class="property-card">
+      <img src="uploads\/peakpx (1).jpg" alt="Property 2" class="property-image">
+      <div class="property-info">
+        <h3 class="property-title">Luxury Condo</h3>
+        <p class="property-description">A stunning 2-bedroom condo located in the heart of the city, offering breathtaking views and upscale amenities.</p>
+        <p class="property-price">$750,000</p>
+        <a href="/property-detail/2" class="property-link">View Details</a>
+      </div>
+    </div>
+
+    <!-- Property 3 -->
+    <div class="property-card">
+      <img src="uploads\/peakpx (1).jpg" alt="Property 3" class="property-image">
+      <div class="property-info">
+        <h3 class="property-title">Charming Cottage</h3>
+        <p class="property-description">A cozy 2-bedroom cottage nestled in the countryside, perfect for weekend getaways or a peaceful retreat.</p>
+        <p class="property-price">$225,000</p>
+        <a href="/property-detail/3" class="property-link">View Details</a>
+      </div>
+    </div>
+
+    <!-- Add more properties as needed -->
+    <div class="footer-section">
+      <h3>About Us</h3>
+      <p>We are a trusted real estate company helping people find their dream homes. With years of experience, we offer the best listings and expert advice.</p>
+    </div>
+
+    <!-- Quick Links Section -->
+    <div class="footer-section">
+      <h3>Quick Links</h3>
+      <ul>
+        <li><a href="/home">Home</a></li>
+        <li><a href="/about">About Us</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li><a href="/properties">Properties</a></li>
+        <li><a href="/blog">Blog</a></li>
+      </ul>
+    </div>
+
+    <!-- Contact Section -->
+    <div class="footer-section">
+      <h3>Contact Us</h3>
+      <p>123 Real Estate St, Suite 500</p>
+      <p>Email: <a href="mailto:info@realestate.com">info@realestate.com</a></p>
+      <p>Phone: (555) 123-4567</p>
+    </div>
+
+    <!-- Social Media Section -->
+    <div class="footer-section">
+      <h3>Follow Us</h3>
+      <div class="social-icons">
+        <a href="https://facebook.com" target="_blank"><img src="facebook-icon.png" alt="Facebook"></a>
+        <a href="https://twitter.com" target="_blank"><img src="twitter-icon.png" alt="Twitter"></a>
+        <a href="https://instagram.com" target="_blank"><img src="instagram-icon.png" alt="Instagram"></a>
+        <a href="https://linkedin.com" target="_blank"><img src="linkedin-icon.png" alt="LinkedIn"></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>&copy; 2025 Real Estate Company. All rights reserved.</p>
+    <p><a href="/privacy-policy">Privacy Policy</a> | <a href="/terms-of-service">Terms of Service</a></p>
+  </div>
+</footer>
+
+  </main>
+</body>
+</html>
+
+
+                                                             //home page
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><SELect></SELect></title>
+  <!--<link rel="stylesheet" href="{{url_for('static',filename='css/index.css')}}">-->
+  <style>
+       body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  /* Header Styles */
+  header {
+    position: sticky;
+    top: 0;
+    background: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+  }
+  
+  .navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+  }
+  
+  .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #6e8efb;
+  }
+  
+  .nav-links {
+    list-style: none;
+    display: flex;
+    gap: 1.5rem;
+  }
+  
+  .nav-links a {
+    text-decoration: none;
+    color: #333;
+    transition: color 0.3s ease;
+  }
+  
+  .nav-links a:hover {
+    color: #6e8efb;
+  }
+  
+  /* Hero Section */
+  .hero {
+    height: 100vh;
+    background: linear-gradient(135deg, #6e8efb, #a777e3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: white;
+    padding: 0 2rem;
+  }
+  
+  .hero-content h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    animation: fadeInDown 1s ease-out;
+  }
+  
+  .hero-content p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    animation: fadeInUp 1s ease-out;
+  }
+  
+  /* Buttons */
+  .hero-buttons .btn {
+    padding: 0.8rem 2rem;
+    font-size: 1rem;
+    border-radius: 30px;
+    cursor: pointer;
+    margin: 0.5rem;
+    transition: all 0.3s ease;
+  }
+  
+  /* Primary Button */
+  .primary-btn {
+    background-color: #4CAF50;
+    color: white;
+    border-color: #4CAF50;
+    box-shadow: 0 4px 6px rgba(76, 175, 80, 0.5);
+  }
+
+  .primary-btn:hover {
+    background-color: white;
+    color: #4CAF50;
+    box-shadow: 0 6px 15px rgba(76, 175, 80, 0.8);
+  }
+
+  /* Secondary Button */
+  .secondary-btn {
+    background-color: white;
+    color: #6e8efb;
+    border-color: #6e8efb;
+    box-shadow: 0 4px 6px rgba(110, 142, 251, 0.5);
+  }
+
+  .secondary-btn:hover {
+    background-color: #6e8efb;
+    color: white;
+    box-shadow: 0 6px 15px rgba(110, 142, 251, 0.8);
+  }
+  /* Animations */
+  @keyframes fadeInDown {
+    0% {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes fadeInUp {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  
+  </style>
+</head>
+<body>
+  <!-- Header Section -->
+  <header>
+    <nav class="navbar">
+      <div class="logo">MyWebsite</div>
+      <ul class="nav-links">
+        <li><a href="">Home</a></li>
+        <li><a href="#">About</a></li>
+        <li><a href="#">Services</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Welcome to our Company</h1>
+      <p>Explore amazing features and discover great possibilities.</p>
+      <!-- Buttons -->
+      <div class="hero-buttons">
+        <form action="buy.php">
+        <button type="submit" class="btn primary-btn">BUY PROPERTY</button>
+        </form>
+        <form action="add.php" method="GET">
+        <button type="submit" class=" secondary-btn">ADD PROPERTY</button>
+      </form>
+      </div>
+    </div>
+  </section>
+</body>
+</html>
+
+<?php
+include "database.php"; // Secure Database Connection
+
+// Prepare a secure SQL statement
+$stmt = $conn->prepare("SELECT * FROM team_members ORDER BY id DESC");
+$stmt->execute();
+$result = $stmt->get_result();
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - Secure Real Estate</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f8f8f8;
+            color: #333;
+            transition: background 0.3s, color 0.3s;
+        }
+        .container {
+            width: 80%;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 1s forwards;
+        }
+        h1, h2 { 
+            color: #2c3e50; 
+            text-align: center;
+            animation: slideIn 1s ease-in-out;
+        }
+
+        /* Sections */
+        section {
+            margin-bottom: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 1s forwards;
+        }
+
+        /* Team Section */
+        .team {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .member {
+            flex: 1;
+            min-width: 250px;
+            background: #ecf0f1;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            animation: scaleIn 1s ease-in-out;
+        }
+        .member:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            transition: transform 0.3s ease-in-out;
+            animation: fadeIn 1.5s ease-in-out;
+        }
+        .member:hover img {
+            transform: scale(1.1);
+        }
+        .contact {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .contact a {
+            text-decoration: none;
+            color: #3498db;
+            font-weight: 500;
+        }
+        .contact a:hover {
+            text-decoration: underline;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Dark Mode Toggle */
+        .dark-mode {
+            background: #2c3e50;
+            color: #f8f8f8;
+        }
+        .dark-mode .container {
+            background: #34495e;
+            box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.1);
+        }
+        .toggle-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .toggle-btn:hover {
+            background: #2980b9;
+        }
+    </style>
+</head>
+<body>
+
+<button class="toggle-btn" onclick="toggleDarkMode()">?? Dark Mode</button>
+
+<div class="container">
+    <h1>About Our Real Estate Company</h1>
+
+    <section>
+        <h2>?? Company History</h2>
+        <p>Founded in 2010, our real estate agency has been helping people find their dream homes for over a decade.</p>
+    </section>
+
+    <section>
+        <h2>?? Why Choose Us?</h2>
+        <ul>
+            <li>?? Over 10 years of experience</li>
+            <li>?? Trusted by thousands of customers</li>
+            <li>?? Wide range of properties</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>?? Mission & Vision</h2>
+        <p><strong>Mission:</strong> To make home buying and selling stress-free.</p>
+        <p><strong>Vision:</strong> To be the most trusted real estate company.</p>
+    </section>
+
+    <section>
+        <h2>?? Our Services</h2>
+        <p>We offer a wide range of real estate services, including property sales, rentals, and management.</p>
+    </section>
+
+    <section>
+        <h2>????? Meet Our Team</h2>
+        <div class="team">
+            <?php
+            if ($result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+                    $safe_name = htmlspecialchars($row['name']);
+                    $safe_role = htmlspecialchars($row['role']);
+                    $safe_phone = htmlspecialchars($row['phone']);
+                    $safe_email = htmlspecialchars($row['email']);
+                    $safe_image = htmlspecialchars($row['image']);
+
+                    echo "<div class='member'>
+                            <img src='upload/$safe_image' alt='$safe_name'>
+                            <h3>$safe_name</h3>
+                            <p>$safe_role</p>
+                            <p>?? <a href='tel:$safe_phone'>$safe_phone</a></p>
+                            <p>?? <a href='mailto:$safe_email'>$safe_email</a></p>
+                          </div>";
+                }
+            } else {
+                echo "<p>No team members found.</p>";
+            }
+            $stmt->close();
+            ?>
+        </div>
+    </section>
+</div>
+
+<script>
+    function toggleDarkMode() {
+        document.body.classList.toggle("dark-mode");
+    }
+</script>
+
+</body>
+</html> add cooler user experience for this page and extra sections match for this content 

@@ -1,0 +1,1330 @@
+<?php
+require_once 'components.php';
+$footer = new footer();
+include "database.php"; // Secure Database Connection
+
+// Get the property ID from the URL
+$property_id = $_GET['id'] ?? null;
+if (!$property_id) {
+    die("Property ID is missing.");
+}
+
+// Fetch the property details from the database
+$stmt = $conn->prepare("SELECT * FROM properties WHERE id = ?");
+if ($stmt === false) {
+    die("Error preparing statement: " . $conn->error);
+}
+
+$stmt->bind_param("i", $property_id);
+$stmt->execute();
+$property = $stmt->get_result()->fetch_assoc();
+
+if (!$property) {
+    die("Property not found.");
+}
+
+// Fetch related properties (same property_type)
+$related_stmt = $conn->prepare("SELECT * FROM properties WHERE property_type = ? AND id != ? LIMIT 3");
+if ($related_stmt === false) {
+    die("Error preparing statement: " . $conn->error);
+}
+
+$related_stmt->bind_param("si", $property['property_type'], $property_id);
+$related_stmt->execute();
+$related_properties = $related_stmt->get_result();
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property View - <?= htmlspecialchars($property['property_type']) ?></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <header class="sticky top-0 bg-blue-900 shadow-lg z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-white text-2xl font-bold">MyWebsite</div>
+            <ul class="flex space-x-6">
+                <li><a href="#" class="text-white hover:text-red-500">Home</a></li>
+                <li><a href="about.php" class="text-white hover:text-red-500">About</a></li>
+                <li><a href="#" class="text-white hover:text-red-500">Properties</a></li>
+                <li><a href="#" class="text-white hover:text-red-500">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Property Details Section -->
+    <section class="container mx-auto px-4 py-16">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <!-- Property Images -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+                <?php for ($i = 1; $i <= 4; $i++): ?>
+                    <?php if (!empty($property['image' . $i])): ?>
+                        <img src="<?= htmlspecialchars($property['image' . $i]) ?>" alt="Property Image <?= $i ?>" class="w-full h-64 object-cover rounded-lg">
+                    <?php endif; ?>
+                <?php endfor; ?>
+            </div>
+
+            <!-- Property Details -->
+            <div class="p-6">
+                <!-- Property Type and Rent/Sale Tag -->
+                <div class="flex items-center justify-between mb-4">
+                    <h1 class="text-3xl font-bold text-gray-800"><?= htmlspecialchars($property['property_type']) ?></h1>
+                    <span class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                        <?= strtoupper($property['rent_sale']) ?>
+                    </span>
+                </div>
+
+                <!-- Location -->
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-map-marker-alt text-blue-500 mr-2"></i>
+                    <span class="text-gray-700"><?= htmlspecialchars($property['exact_address']) ?>, <?= htmlspecialchars($property['location']) ?></span>
+                </div>
+
+                <!-- Price -->
+                <p class="text-blue-500 font-bold text-2xl mb-4">$<?= number_format($property['amount'], 2) ?></p>
+
+                <!-- Property Features -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                    <?php if (!empty($property['bedrooms'])): ?>
+                        <div class="flex items-center">
+                            <i class="fas fa-bed text-blue-500 mr-2"></i>
+                            <span class="text-gray-600"><?= htmlspecialchars($property['bedrooms']) ?> Bedrooms</span>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($property['bathrooms'])): ?>
+                        <div class="flex items-center">
+                            <i class="fas fa-bath text-blue-500 mr-2"></i>
+                            <span class="text-gray-600"><?= htmlspecialchars($property['bathrooms']) ?> Bathrooms</span>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($property['square_feet'])): ?>
+                        <div class="flex items-center">
+                            <i class="fas fa-ruler-combined text-blue-500 mr-2"></i>
+                            <span class="text-gray-600"><?= htmlspecialchars($property['square_feet']) ?> Sq Ft</span>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($property['balcony'])): ?>
+                        <div class="flex items-center">
+                            <i class="fas fa-archway text-blue-500 mr-2"></i>
+                            <span class="text-gray-600"><?= htmlspecialchars($property['balcony']) ?> Balcony</span>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($property['water_source'])): ?>
+                        <div class="flex items-center">
+                            <i class="fas fa-tint text-blue-500 mr-2"></i>
+                            <span class="text-gray-600"><?= htmlspecialchars($property['water_source']) ?></span>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($property['parking'])): ?>
+                        <div class="flex items-center">
+                            <i class="fas fa-car text-blue-500 mr-2"></i>
+                            <span class="text-gray-600"><?= htmlspecialchars($property['parking']) ?> Parking</span>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($property['facing'])): ?>
+                        <div class="flex items-center">
+                            <i class="fas fa-compass text-blue-500 mr-2"></i>
+                            <span class="text-gray-600"><?= htmlspecialchars($property['facing']) ?> Facing</span>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($property['possession'])): ?>
+                        <div class="flex items-center">
+                            <i class="fas fa-calendar-alt text-blue-500 mr-2"></i>
+                            <span class="text-gray-600"><?= htmlspecialchars($property['possession']) ?> Possession</span>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Special Description Based on Property Type -->
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">Special Description</h2>
+                    <p class="text-gray-600">
+                        <?php
+                        switch ($property['property_type']) {
+                            case 'land':
+                                echo "This is a prime piece of land located in a highly sought-after area. Ideal for commercial or residential development.";
+                                break;
+                            case 'house':
+                                echo "A beautiful family home with modern amenities and spacious rooms. Perfect for a growing family.";
+                                break;
+                            case 'plots':
+                                echo "Well-maintained plots available for immediate construction. Great investment opportunity.";
+                                break;
+                            case 'apartment':
+                                echo "A luxurious apartment with stunning views and top-notch facilities. Perfect for urban living.";
+                                break;
+                            default:
+                                echo "This property offers great value for money. Don't miss out on this opportunity!";
+                        }
+                        ?>
+                    </p>
+                </div>
+
+                <!-- General Description -->
+                <?php if (!empty($property['description'])): ?>
+                    <div class="mb-6">
+                        <h2 class="text-xl font-bold text-gray-800 mb-2">Description</h2>
+                        <p class="text-gray-600"><?= htmlspecialchars($property['description']) ?></p>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </section>
+
+    <!-- Related Properties Section -->
+    <section class="container mx-auto px-4 py-16">
+        <h2 class="text-3xl font-bold text-center mb-8">🏡 Related Properties</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <?php if ($related_properties->num_rows > 0): ?>
+                <?php while ($related_property = $related_properties->fetch_assoc()): ?>
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                        <!-- Property Image -->
+                        <img src="<?= htmlspecialchars($related_property['image1']) ?>" alt="Property Image" class="w-full h-48 object-cover">
+
+                        <!-- Property Details -->
+                        <div class="p-6">
+                            <!-- Property Type and Rent/Sale Tag -->
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-xl font-bold text-gray-800"><?= htmlspecialchars($related_property['property_type']) ?></h3>
+                                <span class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                                    <?= strtoupper($related_property['rent_sale']) ?>
+                                </span>
+                            </div>
+
+                            <!-- Location -->
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-map-marker-alt text-blue-500 mr-2"></i>
+                                <span class="text-gray-600"><?= htmlspecialchars($related_property['location']) ?></span>
+                            </div>
+
+                            <!-- Price -->
+                            <p class="text-blue-500 font-bold text-xl mb-4">$<?= number_format($related_property['amount'], 2) ?></p>
+
+                            <!-- Call to Action Button -->
+                            <a href="propertyview.php?id=<?= $related_property['id'] ?>" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 w-full block text-center">View Details →</a>
+                        </div>
+                    </div>
+                <?php endwhile; ?>
+            <?php else: ?>
+                <p class="text-center text-gray-600">No related properties found.</p>
+            <?php endif; ?>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <?php $footer->foot(); ?>
+
+    <!-- WhatsApp Float Button -->
+    <a href="https://wa.me/1234567890" class="fixed bottom-8 right-8" target="_blank">
+        <img src="whatsapp-icon.png" alt="WhatsApp" class="w-12 h-12">
+    </a>
+</body>
+</html>
+
+
+
+<!-- Steps Section -->
+    <section class="bg-white py-16">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-8">It's Easy - Get Started Now!</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+                    <h3 class="text-xl font-bold mb-2">01. Let's Chat</h3>
+                    <p class="text-gray-600">Take the first step. Let us know what time works for you to chat with us!</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+                    <h3 class="text-xl font-bold mb-2">02. Discuss Your Goals</h3>
+                    <p class="text-gray-600">We'll work with you to understand your financial goals.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+                    <h3 class="text-xl font-bold mb-2">03. Make It Happen</h3>
+                    <p class="text-gray-600">We’ll guide you through the entire process stress-free.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+/* Header */
+        header {
+            position: sticky;
+            top: 0;
+            background-color: #1e3a8a; /* bg-blue-900 */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-lg */
+            z-index: 50; /* z-50 */
+        }
+        /* Navigation Container */
+        nav {
+            max-width: 1280px; /* container */
+            margin-left: auto; /* mx-auto */
+            margin-right: auto; /* mx-auto */
+            padding-left: 1.5rem; /* px-6 */
+            padding-right: 1.5rem; /* px-6 */
+            padding-top: 1rem; /* py-4 */
+            padding-bottom: 1rem; /* py-4 */
+            display: flex; /* flex */
+            justify-content: space-between; /* justify-between */
+            align-items: center; /* items-center */
+        }
+        /* Logo */
+        nav div {
+            color: white; /* text-white */
+            font-size: 1.5rem; /* text-2xl */
+            font-weight: 700; /* font-bold */
+        }
+        /* Navigation Links */
+        nav ul {
+            display: flex; /* flex */
+            gap: 1.5rem; /* space-x-6 */
+            list-style: none; /* Remove default list styling */
+            padding: 0; /* Remove default padding */
+            margin: 0; /* Remove default margin */
+        }
+        nav ul li a {
+            color: white; /* text-white */
+            text-decoration: none; /* Remove underline */
+            transition: color 0.3s ease; /* Smooth hover transition */
+        }
+        nav ul li a:hover {
+            color: #ef4444; /* hover:text-red-500 */
+        }
+    </style>
+	
+	<?php
+// Database connection
+$connection = new mysqli("localhost", "root", "", "project");
+
+// Check connection
+if ($connection->connect_error) {
+    die("Connection failed: " . $connection->connect_error);
+}
+
+// Initialize variables
+$selectedMonth = isset($_POST['month']) ? $_POST['month'] : null;
+$uploadedCount = 0;
+$soldProperties = [];
+
+// Fetch uploaded properties count for the selected month
+if ($selectedMonth) {
+    $uploadQuery = "SELECT COUNT(*) AS total_properties 
+                    FROM properties 
+                    WHERE DATE_FORMAT(created_at, '%Y-%m') = ?";
+    $stmt = $connection->prepare($uploadQuery);
+    $stmt->bind_param("s", $selectedMonth);
+    $stmt->execute();
+    $uploadResult = $stmt->get_result();
+    $row = $uploadResult->fetch_assoc();
+    $uploadedCount = $row['total_properties'];
+    $stmt->close();
+
+    // Fetch sold properties for the selected month
+    $soldQuery = "SELECT property_name, location 
+                  FROM properties 
+                  WHERE status = 'soldout' AND DATE_FORMAT(created_at, '%Y-%m') = ?";
+    $stmt = $connection->prepare($soldQuery);
+    $stmt->bind_param("s", $selectedMonth);
+    $stmt->execute();
+    $soldResult = $stmt->get_result();
+
+    while ($row = $soldResult->fetch_assoc()) {
+        $soldProperties[] = $row;
+    }
+    $stmt->close();
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f7fa;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            max-width: 600px;
+            margin: auto;
+        }
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            width: 80%;
+        }
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        table th {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+    <h2>Admin Dashboard - Property Analysis</h2>
+
+    <!-- Admin Input Form -->
+    <form method="POST">
+        <label for="month">Select Month (YYYY-MM):</label>
+        <input type="month" id="month" name="month" required value="<?php echo htmlspecialchars($selectedMonth); ?>">
+        <button type="submit">Submit</button>
+    </form>
+
+    <?php if ($selectedMonth): ?>
+        <h3>Analysis for Month: <?php echo htmlspecialchars($selectedMonth); ?></h3>
+
+        <!-- Chart for Properties Uploaded -->
+        <div class="chart-container">
+            <canvas id="uploadChart"></canvas>
+        </div>
+
+        <!-- Chart for Sold Properties -->
+        <div class="chart-container">
+            <canvas id="soldChart"></canvas>
+        </div>
+
+        <!-- Table for Sold Property Details -->
+        <h3>Sold Properties Details</h3>
+        <?php if (!empty($soldProperties)): ?>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Property Name</th>
+                        <th>Location</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($soldProperties as $property): ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($property['property_name']); ?></td>
+                            <td><?php echo htmlspecialchars($property['location']); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php else: ?>
+            <p>No sold-out properties in the selected month.</p>
+        <?php endif; ?>
+    <?php endif; ?>
+
+    <script>
+        // Display uploaded properties count
+        <?php if ($selectedMonth): ?>
+        const uploadedCount = <?php echo $uploadedCount; ?>;
+
+        const uploadCtx = document.getElementById('uploadChart').getContext('2d');
+        new Chart(uploadCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Uploaded Properties'],
+                datasets: [{
+                    label: 'Number of Uploaded Properties',
+                    data: [uploadedCount],
+                    backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                }],
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true },
+                    title: { display: true, text: 'Uploaded Properties' },
+                },
+                scales: { y: { beginAtZero: true } },
+            },
+        });
+
+        // Display sold properties count
+        const soldCount = <?php echo count($soldProperties); ?>;
+
+        const soldCtx = document.getElementById('soldChart').getContext('2d');
+        new Chart(soldCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Sold-Out Properties'],
+                datasets: [{
+                    label: 'Number of Sold-Out Properties',
+                    data: [soldCount],
+                    backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1,
+                }],
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true },
+                    title: { display: true, text: 'Sold-Out Properties' },
+                },
+                scales: { y: { beginAtZero: true } },
+            },
+        });
+        <?php endif; ?>
+    </script>
+</body>
+</html>
+                          //today
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Search Engine</title>
+    <style>
+        /* CSS remains the same as before */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            background-color: #f4f4f4;
+            padding-top: 20px;
+        }
+        .search-container {
+            text-align: center;
+            width: 100%;
+            position: relative;
+        }
+        .search-box {
+            width: 400px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .search-btn {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: none;
+            background: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .search-btn:hover {
+            background: #0056b3;
+        }
+        .dropdown {
+            position: absolute;
+            top: 45px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            display: none;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        .dropdown div {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .dropdown div:hover {
+            background: #f1f1f1;
+        }
+        .filter-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .filter-buttons button {
+            padding: 10px 15px;
+            font-size: 14px;
+            border: none;
+            background: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .filter-buttons button:hover {
+            background: #0056b3;
+        }
+        .property-cards {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .property-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 300px;
+            transition: transform 0.3s;
+        }
+        .property-card:hover {
+            transform: scale(1.05);
+        }
+        .property-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .property-card .details {
+            padding: 15px;
+        }
+        .property-card .details h3 {
+            margin: 0 0 10px;
+            font-size: 18px;
+            color: #333;
+        }
+        .property-card .details p {
+            margin: 0 0 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        .property-card .details .price {
+            font-size: 20px;
+            color: #007bff;
+            font-weight: bold;
+        }
+        .property-card .details .features {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .property-card .details .features span {
+            font-size: 14px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .property-card .details .features span i {
+            color: #007bff;
+        }
+        .property-card .details .view-details {
+            display: block;
+            text-align: center;
+            background: #007bff;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        .property-card .details .view-details:hover {
+            background: #0056b3;
+        }
+    </style>
+    <!-- Add FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const searchBox = document.querySelector(".search-box");
+            const dropdown = document.querySelector(".dropdown");
+            const searchBtn = document.querySelector(".search-btn");
+            const propertyCardsContainer = document.querySelector(".property-cards");
+            const filterButtons = document.querySelectorAll(".filter-buttons button");
+
+            // Function to fetch and display properties
+            function fetchAndDisplayProperties(url) {
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        propertyCardsContainer.innerHTML = "";
+                        if (data.length > 0) {
+                            data.forEach(property => {
+                                let card = document.createElement("div");
+                                card.className = "property-card";
+                                card.innerHTML = `
+                                    <img src="${property.image1}" alt="${property.location}">
+                                    <div class="details">
+                                        <h3>${property.location}</h3>
+                                        <p class="price">$${property.amount}/Month</p>
+                                        <div class="features">
+                                            <span><i class="fas fa-bed"></i> ${property.bedrooms} Beds</span>
+                                            <span><i class="fas fa-bath"></i> ${property.bathrooms} Baths</span>
+                                            <span><i class="fas fa-car"></i> ${property.parking} Parking</span>
+                                            <span><i class="fas fa-compass"></i> ${property.facing} Facing</span>
+                                        </div>
+                                        <p>${property.exact_address}</p>
+                                        <a href="propertyview.php?id=${property.location_id}" class="view-details">View Details →</a>
+                                    </div>
+                                `;
+                                propertyCardsContainer.appendChild(card);
+                            });
+                        } else {
+                            propertyCardsContainer.innerHTML = "<p class='text-center text-gray-600'>No properties found.</p>";
+                        }
+                    });
+            }
+
+            // Fetch random properties on page load
+            fetchAndDisplayProperties("search.php");
+
+            // Fetch locations for dropdown
+            searchBox.addEventListener("input", function() {
+                let query = searchBox.value;
+                if (query.length > 0) {
+                    fetch(`search.php?q=${query}&dropdown=true`)
+                        .then(response => response.json())
+                        .then(data => {
+                            dropdown.innerHTML = "";
+                            if (data.length > 0) {
+                                data.forEach(location => {
+                                    let div = document.createElement("div");
+                                    div.textContent = location;
+                                    div.addEventListener("click", function() {
+                                        searchBox.value = location;
+                                        dropdown.style.display = "none";
+                                    });
+                                    dropdown.appendChild(div);
+                                });
+                                dropdown.style.display = "block";
+                            } else {
+                                dropdown.style.display = "none";
+                            }
+                        });
+                } else {
+                    dropdown.style.display = "none";
+                }
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener("click", function(event) {
+                if (!event.target.closest(".search-container")) {
+                    dropdown.style.display = "none";
+                }
+            });
+
+            // Search button click
+            searchBtn.addEventListener("click", function() {
+                let query = searchBox.value;
+                if (query.length > 0) {
+                    fetchAndDisplayProperties(`search.php?q=${query}`);
+                }
+            });
+
+            // Filter buttons
+            filterButtons.forEach(button => {
+                button.addEventListener("click", function() {
+                    const filter = button.textContent.trim();
+                    let query = searchBox.value;
+                    fetchAndDisplayProperties(`search.php?q=${query}&filter=${filter}`);
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="search-container">
+        <input type="text" class="search-box" placeholder="Search...">
+        <button class="search-btn">Search</button>
+        <div class="dropdown"></div>
+        <div class="filter-buttons">
+            <button>Buy</button>
+            <button>Rent</button>
+            <button>Land</button>
+            <button>Price (Low to High)</button>
+        </div>
+    </div>
+    <div class="property-cards">
+        <!-- Properties will be dynamically loaded here -->
+    </div>
+</body>
+</html>
+               //today  
+			   <?php
+header('Content-Type: application/json');
+
+// Database connection
+$host = 'localhost';
+$db = 'project';
+$user = 'root';
+$pass = '';
+$conn = new mysqli($host, $user, $pass, $db);
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+$query = isset($_GET['q']) ? $_GET['q'] : '';
+$filter = isset($_GET['filter']) ? $_GET['filter'] : '';
+
+// Base query
+$sql = "SELECT * FROM properties WHERE location LIKE ?";
+$params = ["%$query%"];
+$types = "s";
+
+// Apply filters
+if ($filter === 'Buy' || $filter === 'Rent' || $filter === 'Land') {
+    $sql .= " AND rent_sale = ?";
+    $params[] = $filter;
+    $types .= "s";
+} elseif ($filter === 'Price (Low to High)') {
+    $sql .= " ORDER BY amount ASC";
+}
+
+// Prepare and execute the query
+$stmt = $conn->prepare($sql);
+if ($types) {
+    $stmt->bind_param($types, ...$params);
+}
+$stmt->execute();
+$result = $stmt->get_result();
+
+$properties = [];
+while ($row = $result->fetch_assoc()) {
+    $properties[] = $row;
+}
+
+echo json_encode($properties);
+
+$stmt->close();
+$conn->close();
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Search Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        .search-container {
+            width: 100%;
+            max-width: 800px;
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .search-box {
+            width: 100%;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: 2px solid #007bff;
+            border-radius: 25px;
+            outline: none;
+        }
+        .search-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 8px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .dropdown {
+            position: absolute;
+            width: 100%;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            margin-top: 5px;
+        }
+        .dropdown-item {
+            padding: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .dropdown-item:hover {
+            background: #f8f9fa;
+        }
+        .filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+        .filter-btn {
+            padding: 8px 15px;
+            background: #e9ecef;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-btn.active {
+            background: #007bff;
+            color: white;
+        }
+        .property-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+        .property-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .property-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .property-details {
+            padding: 15px;
+        }
+        .property-status {
+            font-size: 0.9em;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+        .status-rented {
+            background: #28a74520;
+            color: #28a745;
+        }
+        .status-sold {
+            background: #dc354520;
+            color: #dc3545;
+        }
+        .property-price {
+            font-size: 1.4em;
+            color: #007bff;
+            margin: 10px 0;
+        }
+        .property-features {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #6c757d;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="search-container">
+        <input type="text" class="search-box" placeholder="Enter location...">
+        <button class="search-btn">Search</button>
+        <div class="dropdown"></div>
+        <div class="filters">
+            <button class="filter-btn" data-filter="buy">Buy</button>
+            <button class="filter-btn" data-filter="rent">Rent</button>
+            <button class="filter-btn" data-filter="land">Land</button>
+            <button class="filter-btn" data-filter="price_asc">Price Low to High</button>
+        </div>
+    </div>
+    <div class="property-grid"></div>
+
+    <script>
+        const searchBox = document.querySelector('.search-box');
+        const searchBtn = document.querySelector('.search-btn');
+        const dropdown = document.querySelector('.dropdown');
+        const propertyGrid = document.querySelector('.property-grid');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+
+        let currentFilter = '';
+        let currentSearch = '';
+
+        async function fetchProperties() {
+            let url = `search.php?q=${encodeURIComponent(currentSearch)}`;
+            if(currentFilter) url += `&filter=${currentFilter}`;
+            
+            try {
+                const response = await fetch(url);
+                const properties = await response.json();
+                renderProperties(properties);
+            } catch(error) {
+                console.error('Error:', error);
+                propertyGrid.innerHTML = '<p>Error loading properties</p>';
+            }
+        }
+
+       function renderProperties(properties) {
+    propertyGrid.innerHTML = properties.map(property => `
+        <div class="property-card">
+            <img src="${property.image1}" class="property-image" alt="${property.location}">
+            <div class="property-details">
+                <div class="property-status ${property.rent_sale === 'rent' ? 'status-rented' : 'status-sold'}">
+                    ${property.rent_sale === 'rent' ? 
+                      `Rent (${property.current_stage})` : 
+                      'Available for Sale'}
+                </div>
+                <h3>${property.location}</h3>
+                <div class="property-price">
+                    $${property.amount}${property.rent_sale === 'rent' ? '/mo' : ''}
+                </div>
+                <div class="property-features">
+                    ${property.bedrooms ? `<div class="feature-item"><i class="fas fa-bed"></i> ${property.bedrooms}</div>` : ''}
+                    ${property.bathrooms ? `<div class="feature-item"><i class="fas fa-bath"></i> ${property.bathrooms}</div>` : ''}
+                    ${property.parking ? `<div class="feature-item"><i class="fas fa-car"></i> ${property.parking}</div>` : ''}
+                    ${property.facing ? `<div class="feature-item"><i class="fas fa-compass"></i> ${property.facing}</div>` : ''}
+                </div>
+                <p>${property.exact_address}</p>
+            </div>
+        </div>
+    `).join('');
+}
+
+
+        async function fetchSuggestions(query) {
+            if(!query) {
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetch(`search.php?q=${encodeURIComponent(query)}&dropdown=true`);
+                const suggestions = await response.json();
+                
+                dropdown.innerHTML = suggestions.map(location => `
+                    <div class="dropdown-item">${location}</div>
+                `).join('');
+                
+                dropdown.style.display = suggestions.length ? 'block' : 'none';
+            } catch(error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Event Listeners
+        searchBox.addEventListener('input', (e) => {
+            currentSearch = e.target.value;
+            fetchSuggestions(currentSearch);
+        });
+
+        searchBtn.addEventListener('click', () => {
+            dropdown.style.display = 'none';
+            fetchProperties();
+        });
+
+        dropdown.addEventListener('click', (e) => {
+            if(e.target.classList.contains('dropdown-item')) {
+                searchBox.value = e.target.textContent;
+                currentSearch = e.target.textContent;
+                dropdown.style.display = 'none';
+                fetchProperties();
+            }
+        });
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                fetchProperties();
+            });
+        });
+
+        // Initial load
+        fetchProperties();
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Search Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        .search-container {
+            width: 100%;
+            max-width: 800px;
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .search-box {
+            width: 100%;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: 2px solid #007bff;
+            border-radius: 25px;
+            outline: none;
+        }
+        .search-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 8px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .dropdown {
+            position: absolute;
+            width: 100%;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            margin-top: 5px;
+        }
+        .dropdown-item {
+            padding: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .dropdown-item:hover {
+            background: #f8f9fa;
+        }
+        .filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+        .filter-btn {
+            padding: 8px 15px;
+            background: #e9ecef;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-btn.active {
+            background: #007bff;
+            color: white;
+        }
+        .property-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+        .property-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .property-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .property-details {
+            padding: 15px;
+        }
+        .property-status {
+            font-size: 0.9em;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+        .status-rented {
+            background: #28a74520;
+            color: #28a745;
+        }
+        .status-sold {
+            background: #dc354520;
+            color: #dc3545;
+        }
+        .property-price {
+            font-size: 1.4em;
+            color: #007bff;
+            margin: 10px 0;
+        }
+        .property-features {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #6c757d;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="search-container">
+        <input type="text" class="search-box" placeholder="Enter location...">
+        <button class="search-btn">Search</button>
+        <div class="dropdown"></div>
+        <div class="filters">
+            <button class="filter-btn" data-filter="buy">Buy</button>
+            <button class="filter-btn" data-filter="rent">Rent</button>
+            <button class="filter-btn" data-filter="land">Land</button>
+            <button class="filter-btn" data-filter="price_asc">Price Low to High</button>
+        </div>
+    </div>
+    <div class="property-grid"></div>
+
+    <script>
+        const searchBox = document.querySelector('.search-box');
+        const searchBtn = document.querySelector('.search-btn');
+        const dropdown = document.querySelector('.dropdown');
+        const propertyGrid = document.querySelector('.property-grid');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+
+        let currentFilter = '';
+        let currentSearch = '';
+
+        async function fetchProperties() {
+            let url = `search.php?q=${encodeURIComponent(currentSearch)}`;
+            if(currentFilter) url += `&filter=${currentFilter}`;
+            
+            try {
+                const response = await fetch(url);
+                const properties = await response.json();
+                renderProperties(properties);
+            } catch(error) {
+                console.error('Error:', error);
+                propertyGrid.innerHTML = '<p>Error loading properties</p>';
+            }
+        }
+
+       function renderProperties(properties) {
+    propertyGrid.innerHTML = properties.map(property => `
+        <div class="property-card">
+            <img src="${property.image1}" class="property-image" alt="${property.location}">
+            <div class="property-details">
+                <div class="property-status ${property.rent_sale === 'rent' ? 'status-rented' : 'status-sold'}">
+                    ${property.rent_sale === 'rent' ? 
+                      `Rent (${property.current_stage})` : 
+                      'Available for Sale'}
+                </div>
+                <h3>${property.location}</h3>
+                <div class="property-price">
+                    $${property.amount}${property.rent_sale === 'rent' ? '/mo' : ''}
+                </div>
+                <div class="property-features">
+                    ${property.bedrooms ? `<div class="feature-item"><i class="fas fa-bed"></i> ${property.bedrooms}</div>` : ''}
+                    ${property.bathrooms ? `<div class="feature-item"><i class="fas fa-bath"></i> ${property.bathrooms}</div>` : ''}
+                    ${property.parking ? `<div class="feature-item"><i class="fas fa-car"></i> ${property.parking}</div>` : ''}
+                    ${property.facing ? `<div class="feature-item"><i class="fas fa-compass"></i> ${property.facing}</div>` : ''}
+                </div>
+                <p>${property.exact_address}</p>
+            </div>
+        </div>
+    `).join('');
+}
+
+
+        async function fetchSuggestions(query) {
+            if(!query) {
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetch(`search.php?q=${encodeURIComponent(query)}&dropdown=true`);
+                const suggestions = await response.json();
+                
+                dropdown.innerHTML = suggestions.map(location => `
+                    <div class="dropdown-item">${location}</div>
+                `).join('');
+                
+                dropdown.style.display = suggestions.length ? 'block' : 'none';
+            } catch(error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Event Listeners
+        searchBox.addEventListener('input', (e) => {
+            currentSearch = e.target.value;
+            fetchSuggestions(currentSearch);
+        });
+
+        searchBtn.addEventListener('click', () => {
+            dropdown.style.display = 'none';
+            fetchProperties();
+        });
+
+        dropdown.addEventListener('click', (e) => {
+            if(e.target.classList.contains('dropdown-item')) {
+                searchBox.value = e.target.textContent;
+                currentSearch = e.target.textContent;
+                dropdown.style.display = 'none';
+                fetchProperties();
+            }
+        });
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                fetchProperties();
+            });
+        });
+
+        // Initial load
+        fetchProperties();
+    </script>
+</body>
+</html>

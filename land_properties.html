@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Property Search Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: #c3cfe2;
+      font-family: 'Poppins', sans-serif;
+    }
+    #filterContainer {
+      transition: transform 0.5s ease, opacity 0.5s ease;
+      background: #c3cfe2;
+      border-radius: 1px;
+    }
+    .hidden-slide {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    .animate-slide-up {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    #suggestionsDropdown {
+      z-index: 1100;
+    }
+    .property-grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+    .property-card {
+      min-height: 300px;
+    }
+    .filter-btn.active {
+      background: red !important;
+      color: white !important;
+    }
+    .filter-btn.active i {
+      color: white !important;
+    }
+    .price-dropdown-container {
+      position: relative;
+    }
+    #priceDropdown {
+      position: absolute;
+      top: 50%;
+      left: 100%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: row;
+      gap: 0.5rem;
+      z-index: 100;
+    }
+    #priceDropdown.hidden {
+      display: none;
+    }
+    .price-item {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.625rem 1.5rem;
+      background-color: #e5e7eb;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    .price-item:hover {
+      background-color: #d1d5db;
+    }
+    .status-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      z-index: 10;
+    }
+    .image-container {
+      position: relative;
+    }
+    @media (max-width: 1024px) {
+      .property-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    @media (max-width: 768px) {
+      .property-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (max-width: 480px) {
+      .property-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body class="p-6">
+
+  <div class="w-full max-w-7xl mx-auto space-y-4">
+    <!-- Search Bar Section -->
+    <div class="relative">
+      <div class="flex items-center space-x-2 p-2 bg-white rounded-full shadow-md">
+        <input id="searchBox" type="text"
+               class="flex-grow p-2 rounded-full border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+               placeholder="Search..."/>
+        <a href="properties.html">
+          <button id="houseButton"
+                  class="px-4 py-2 bg-gray-200 rounded-full hover:bg-gray-300 transition-colors">House
+          </button>
+        </a>
+        <button id="landButton"
+                class="px-4 py-2 bg-gray-200 rounded-full hover:bg-gray-300 transition-colors">Land
+        </button>
+      </div>
+      <div id="suggestionsDropdown"
+           class="absolute top-full mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg"
+           style="display: none;"></div>
+    </div>
+
+    <!-- Filter Buttons -->
+    <div id="filterContainer" class="hidden-slide hidden flex justify-center space-x-3 p-2 rounded-full">
+      <button class="filter-btn flex items-center px-6 py-2.5 bg-gray-200 rounded-full text-sm active"
+              data-filter="all">
+        <i class="fas fa-list text-blue-500 mr-2"></i>All
+      </button>
+      <button class="filter-btn flex items-center px-6 py-2.5 bg-gray-200 rounded-full text-sm"
+              data-filter="agricultureland"
+        <i class="fas fa-tractor text-blue-500 mr-2"></i>Agriculture Land
+      </button>
+      <button class="filter-btn flex items-center px-6 py-2.5 bg-gray-200 rounded-full text-sm"
+              data-filter="plots">
+        <i class="fas fa-map-marked-alt text-blue-500 mr-2"></i>Residential Plot
+      </button>
+      <div class="price-dropdown-container">
+        <button id="priceButton"
+                class="flex items-center px-6 py-2.5 bg-gray-200 rounded-full text-sm hover:bg-gray-300 transition-colors">
+          <i class="fas fa-dollar-sign text-blue-500 mr-2"></i>Price
+          <i class="fas fa-caret-down ml-1"></i>
+        </button>
+        <div id="priceDropdown" class="hidden">
+          <div class="price-item" data-price="price_low_high">
+            <i class="fas fa-sort-amount-up-alt text-blue-500 mr-2"></i>Low to High
+          </div>
+          <div class="price-item" data-price="price_high_low">
+            <i class="fas fa-sort-amount-down text-blue-500 mr-2"></i>High to Low
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Property Grid -->
+    <div class="property-grid grid gap-4">
+      <!-- Properties will be rendered here -->
+    </div>
+  </div>
+
+  <script>
+    // DOM Elements
+    const searchBox = document.getElementById('searchBox');
+    const houseButton = document.getElementById('houseButton');
+    const landButton = document.getElementById('landButton');
+    const priceButton = document.getElementById('priceButton');
+    const priceDropdown = document.getElementById('priceDropdown');
+    const suggestionsDropdown = document.getElementById('suggestionsDropdown');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const propertyGrid = document.querySelector('.property-grid');
+    const filterContainer = document.getElementById('filterContainer');
+
+    // State Variables
+    let currentFilter = 'all';
+    let currentSearch = '';
+    let currentPriceFilter = '';
+
+    // Toggle Price Dropdown on price button click
+    priceButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      priceDropdown.classList.toggle('hidden');
+    });
+
+    // Global click listener for closing dropdowns
+    document.addEventListener('click', (event) => {
+      // Close price dropdown if clicking outside of the price button or dropdown
+      if (!event.target.closest('#priceButton, #priceDropdown')) {
+        priceDropdown.classList.add('hidden');
+      }
+      // Close suggestions dropdown if clicking outside of the search box or suggestions dropdown
+      if (!event.target.closest('#searchBox, #suggestionsDropdown')) {
+        suggestionsDropdown.style.display = 'none';
+      }
+    });
+
+    // Close dropdowns when window loses focus
+    window.addEventListener('blur', () => {
+      suggestionsDropdown.style.display = 'none';
+      priceDropdown.classList.add('hidden');
+    });
+
+    // Filter button handling
+    filterBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        console.log("Filter selected:", currentFilter);
+        fetchProperties();
+      });
+    });
+
+    // Fetch properties from server
+    async function fetchProperties() {
+      let url = `search_land.php?q=${encodeURIComponent(currentSearch)}`;
+      if (currentFilter && currentFilter !== 'all') url += `&filter=${currentFilter}`;
+      if (currentPriceFilter) url += `&price=${currentPriceFilter}`;
+
+      console.log("Fetching URL:", url);
+
+      try {
+        const response = await fetch(url);
+        const text = await response.text();
+        console.log("Raw Response:", text);
+        const properties = JSON.parse(text);
+        
+        if (properties.success === false) throw new Error(properties.error);
+        
+        renderProperties(properties);
+        if (filterContainer.classList.contains('hidden')) {
+          filterContainer.classList.remove('hidden');
+          void filterContainer.offsetWidth;
+          filterContainer.classList.add('animate-slide-up');
+          filterContainer.classList.remove('hidden-slide');
+        }
+      } catch (err) {
+        console.error('Error fetching properties:', err);
+        propertyGrid.innerHTML = '<p>Error loading properties</p>';
+      }
+    }
+
+    // Render properties
+    function renderProperties(properties) {
+      if (!Array.isArray(properties) || !properties.length) {
+        propertyGrid.innerHTML = '<p>No properties found.</p>';
+        return;
+      }
+      propertyGrid.innerHTML = properties.map(property => `
+        <div class="property-card bg-white rounded-lg shadow-md overflow-hidden flex flex-col">
+          <div class="image-container relative">
+            <img src="${property.image1}" class="w-full h-40 object-cover" alt="${property.location}">
+            <div class="status-badge bg-blue-100 text-blue-700">
+              ${property.property_type}
+            </div>
+          </div>
+          <div class="p-4 flex flex-col gap-2 flex-grow">
+            <h3 class="text-base font-semibold flex items-center">
+              <i class="fas fa-map-marker-alt text-blue-500 mr-2"></i>
+              ${property.location}
+            </h3>
+            <div class="text-xl text-blue-600">
+              ₹${Number(property.price).toLocaleString('en-IN')}
+            </div>
+            <div class="text-sm text-gray-600">
+              <i class="fas fa-ruler-combined text-blue-500 mr-2"></i>Total Area: ${property.total_area} sq.ft
+            </div>
+            <div class="text-sm text-gray-600">
+              <i class="fas fa-tint text-blue-500 mr-2"></i>Water Source: ${property.water_source}
+            </div>
+            <p class="text-gray-700 text-sm mt-2 mb-4 leading-relaxed">
+              ${property.description.substring(0, 100)}...
+            </p>
+            <p class="text-gray-500 text-xs mt-1">
+              Address: ${property.address}
+            </p>
+            <a href="land_propertyview.php?id=${property.location_id}"
+               class="mt-auto bg-gray-800 hover:bg-gray-900 text-white py-2 px-4 rounded-full transition-colors text-sm text-center">
+              View Details →
+            </a>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Search suggestions with a limit of 9 items
+    async function fetchSuggestions(query) {
+      if (!query) {
+        suggestionsDropdown.style.display = 'none';
+        return;
+      }
+      try {
+        const response = await fetch(`search_land.php?q=${encodeURIComponent(query)}&dropdown=true`);
+        const suggestions = await response.json();
+        const limitedSuggestions = suggestions.slice(0, 9);
+        suggestionsDropdown.innerHTML = limitedSuggestions
+          .map(item => `<div class="p-2 hover:bg-gray-200 cursor-pointer">${item}</div>`)
+          .join('');
+        suggestionsDropdown.style.display = limitedSuggestions.length ? 'block' : 'none';
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+      }
+    }
+
+    // Event listeners for search box
+    searchBox.addEventListener('input', e => {
+      currentSearch = e.target.value;
+      fetchSuggestions(currentSearch);
+    });
+
+    searchBox.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        suggestionsDropdown.style.display = 'none';
+        fetchProperties();
+      }
+    });
+
+    // Handle suggestion click
+    suggestionsDropdown.addEventListener('click', e => {
+      if (e.target.tagName === 'DIV') {
+        searchBox.value = e.target.textContent;
+        currentSearch = e.target.textContent;
+        suggestionsDropdown.style.display = 'none';
+        fetchProperties();
+      }
+    });
+
+    // Price dropdown item click handling
+    priceDropdown.querySelectorAll('.price-item').forEach(item => {
+      item.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        currentPriceFilter = item.dataset.price;
+        priceDropdown.classList.add('hidden');
+        fetchProperties();
+      });
+    });
+
+    // Initial load
+    fetchProperties();
+  </script>
+</body>
+</html>
